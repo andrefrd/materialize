@@ -1,13 +1,37 @@
 module.exports = function(grunt) {
 
+  var concatFile = 'temp/js/materialize_concat.js.map';
+
   // configure the tasks
-  grunt.initConfig({
-//  Copy
+  var config = {
+    //  Copy
     copy: {
-      dist: { cwd: 'font', src: [ '**' ], dest: 'dist/font', expand: true },
+      dist: { cwd: 'fonts', src: [ '**' ], dest: 'dist/fonts', expand: true },
     },
 
-//  Sass
+    //  Jasmine
+    jasmine: {
+      components: {
+        src: [
+          'bin/materialize.js'
+        ],
+        options: {
+          vendor: [
+            'node_modules/jquery/dist/jquery.min.js',
+            'node_modules/jasmine-jquery/lib/jasmine-jquery.js'
+          ],
+          styles: 'bin/materialize.css',
+          specs: 'tests/spec/**/*Spec.js',
+          helpers: 'tests/spec/helper.js',
+          keepRunner : true,
+          //helpers: 'test/spec/*.js'
+        }
+      }
+    },
+
+
+
+    //  Sass
     sass: {                              // Task
       expanded: {                            // Target
         options: {                       // Target options
@@ -32,7 +56,7 @@ module.exports = function(grunt) {
       // Compile ghpages css
       gh: {
         options: {
-          style: 'compressed',
+          outputStyle: 'compressed',
           sourcemap: false
         },
         files: {
@@ -40,10 +64,10 @@ module.exports = function(grunt) {
         }
       },
 
-      // Compile ghpages css
+      // Compile bin css
       bin: {
         options: {
-          style: 'expanded',
+          outputStyle: 'expanded',
           sourcemap: false
         },
         files: {
@@ -52,25 +76,78 @@ module.exports = function(grunt) {
       }
     },
 
-  // Browser Sync integration
-    browserSync: {
-      bsFiles: ["bin/*.js", "bin/*.css", "!**/node_modules/**/*"],
+    // PostCss Autoprefixer
+    postcss: {
       options: {
-          server: {
-              baseDir: "./" // make server from root dir
-          },
-          port: 8000,
-          ui: {
-              port: 8080,
-              weinre: {
-                  port: 9090
-              }
-          },
-          open: false
+        processors: [
+          require('autoprefixer')({
+            browsers: [
+              'last 2 versions',
+              'Chrome >= 30',
+              'Firefox >= 30',
+              'ie >= 10',
+              'Safari >= 8']
+          })
+        ]
+      },
+      expanded: {
+        src: 'dist/css/materialize.css'
+      },
+      min: {
+        src: 'dist/css/materialize.min.css'
+      },
+      gh: {
+        src: 'css/ghpages-materialize.css'
+      },
+      bin: {
+        src: 'bin/materialize.css'
       }
     },
 
-//  Concat
+    babel: {
+		  options: {
+			  sourceMap: false,
+			  plugins: [
+          'transform-es2015-arrow-functions',
+          'transform-es2015-block-scoping',
+          'transform-es2015-classes',
+          'transform-es2015-template-literals'
+        ]
+		  },
+		  bin: {
+        options: {
+          sourceMap: true
+        },
+			  files: {
+				  'bin/materialize.js': 'temp/js/materialize_concat.js'
+			  }
+		  },
+      dist: {
+        files: {
+          'dist/js/materialize.js': 'temp/js/materialize.js'
+        }
+      }
+	  },
+
+    // Browser Sync integration
+    browserSync: {
+      bsFiles: ["bin/*", "css/ghpages-materialize.css", "!**/node_modules/**/*"],
+      options: {
+        server: {
+          baseDir: "./" // make server from root dir
+        },
+        port: 8000,
+        ui: {
+          port: 8080,
+          weinre: {
+            port: 9090
+          }
+        },
+        open: false
+      }
+    },
+
+    //  Concat
     concat: {
       options: {
         separator: ';'
@@ -78,76 +155,88 @@ module.exports = function(grunt) {
       dist: {
         // the files to concatenate
         src: [
-              "js/jquery.easing.1.3.js",
-              "js/animation.js",
-              "js/velocity.min.js",
-              "js/hammer.min.js",
-              "js/jquery.hammer.js",
-              "js/global.js",
-              "js/collapsible.js",
-              "js/dropdown.js",
-              "js/leanModal.js",
-              "js/materialbox.js",
-              "js/parallax.js",
-              "js/tabs.js",
-              "js/tooltip.js",
-              "js/waves.js",
-              "js/toasts.js",
-              "js/sideNav.js",
-              "js/scrollspy.js",
-              "js/forms.js",
-              "js/slider.js",
-              "js/cards.js",
-              "js/chips.js",
-              "js/pushpin.js",
-              "js/buttons.js",
-              "js/transitions.js",
-              "js/scrollFire.js",
-              "js/date_picker/picker.js",
-              "js/date_picker/picker.date.js",
-              "js/character_counter.js",
-             ],
-        // the location of the resulting JS file
-        dest: 'dist/js/materialize.js'
-      },
-      temp: {
-        // the files to concatenate
-        src: [
-              "js/jquery.easing.1.3.js",
-              "js/animation.js",
-              "js/velocity.min.js",
-              "js/hammer.min.js",
-              "js/jquery.hammer.js",
-              "js/global.js",
-              "js/collapsible.js",
-              "js/dropdown.js",
-              "js/leanModal.js",
-              "js/materialbox.js",
-              "js/parallax.js",
-              "js/tabs.js",
-              "js/tooltip.js",
-              "js/waves.js",
-              "js/toasts.js",
-              "js/sideNav.js",
-              "js/scrollspy.js",
-              "js/forms.js",
-              "js/slider.js",
-              "js/cards.js",
-              "js/chips.js",
-              "js/pushpin.js",
-              "js/buttons.js",
-              "js/transitions.js",
-              "js/scrollFire.js",
-              "js/date_picker/picker.js",
-              "js/date_picker/picker.date.js",
-              "js/character_counter.js",
-             ],
+          "js/initial.js",
+          "js/jquery.easing.1.4.js",
+          "js/animation.js",
+          "js/velocity.min.js",
+          "js/hammer.min.js",
+          "js/jquery.hammer.js",
+          "js/global.js",
+          "js/collapsible.js",
+          "js/dropdown.js",
+          "js/modal.js",
+          "js/materialbox.js",
+          "js/parallax.js",
+          "js/tabs.js",
+          "js/tooltip.js",
+          "js/waves.js",
+          "js/toasts.js",
+          "js/sideNav.js",
+          "js/scrollspy.js",
+          "js/forms.js",
+          "js/slider.js",
+          "js/cards.js",
+          "js/chips.js",
+          "js/pushpin.js",
+          "js/buttons.js",
+          "js/transitions.js",
+          "js/scrollFire.js",
+          "js/date_picker/picker.js",
+          "js/date_picker/picker.date.js",
+          "js/date_picker/picker.time.js",
+          "js/character_counter.js",
+          "js/carousel.js",
+          "js/tapTarget.js",
+        ],
         // the location of the resulting JS file
         dest: 'temp/js/materialize.js'
       },
+      temp: {
+        // the files to concatenate
+        options: {
+          sourceMap: true,
+          sourceMapStyle: 'link'
+        },
+        src: [
+          "js/initial.js",
+          "js/jquery.easing.1.4.js",
+          "js/animation.js",
+          "js/velocity.min.js",
+          "js/hammer.min.js",
+          "js/jquery.hammer.js",
+          "js/global.js",
+          "js/collapsible.js",
+          "js/dropdown.js",
+          "js/modal.js",
+          "js/materialbox.js",
+          "js/parallax.js",
+          "js/tabs.js",
+          "js/tooltip.js",
+          "js/waves.js",
+          "js/toasts.js",
+          "js/sideNav.js",
+          "js/scrollspy.js",
+          "js/forms.js",
+          "js/slider.js",
+          "js/cards.js",
+          "js/chips.js",
+          "js/pushpin.js",
+          "js/buttons.js",
+          "js/transitions.js",
+          "js/scrollFire.js",
+          "js/date_picker/picker.js",
+          "js/date_picker/picker.date.js",
+          "js/date_picker/picker.time.js",
+          "js/character_counter.js",
+          "js/carousel.js",
+          "js/tapTarget.js",
+        ],
+        // the location of the resulting JS file
+        dest: 'temp/js/materialize_concat.js'
+      },
     },
 
-//  Uglify
+    //  Uglify
     uglify: {
       options: {
         // Use these options when debugging
@@ -165,11 +254,16 @@ module.exports = function(grunt) {
         files: {
           'bin/materialize.js': ['temp/js/materialize.js']
         }
+      },
+      extras: {
+        files: {
+          'extras/noUiSlider/nouislider.min.js': ['extras/noUiSlider/nouislider.js']
+        }
       }
     },
 
 
-//  Compress
+    //  Compress
     compress: {
       main: {
         options: {
@@ -188,41 +282,45 @@ module.exports = function(grunt) {
           level: 6
         },
         files:[
-          {expand: true, cwd: 'font/', src: ['**/*'], dest: 'materialize-src/font/'},
+          {expand: true, cwd: 'fonts/', src: ['**/*'], dest: 'materialize-src/fonts/'},
           {expand: true, cwd: 'sass/', src: ['materialize.scss'], dest: 'materialize-src/sass/'},
           {expand: true, cwd: 'sass/', src: ['components/**/*'], dest: 'materialize-src/sass/'},
           {expand: true, cwd: 'js/', src: [
-              "jquery.easing.1.3.js",
-              "animation.js",
-              "velocity.min.js",
-              "hammer.min.js",
-              "jquery.hammer.js",
-              "global.js",
-              "collapsible.js",
-              "dropdown.js",
-              "leanModal.js",
-              "materialbox.js",
-              "parallax.js",
-              "tabs.js",
-              "tooltip.js",
-              "waves.js",
-              "toasts.js",
-              "sideNav.js",
-              "scrollspy.js",
-              "forms.js",
-              "slider.js",
-              "cards.js",
-              "chips.js",
-              "pushpin.js",
-              "buttons.js",
-              "transitions.js",
-              "scrollFire.js",
-              "date_picker/picker.js",
-              "date_picker/picker.date.js",
-              "character_counter.js",
-             ], dest: 'materialize-src/js/'},
-        {expand: true, cwd: 'dist/js/', src: ['**/*'], dest: 'materialize-src/js/bin/'},
-        {expand: true, cwd: './', src: ['LICENSE', 'README.md'], dest: 'materialize-src/'}
+            "initial.js",
+            "jquery.easing.1.4.js",
+            "animation.js",
+            "velocity.min.js",
+            "hammer.min.js",
+            "jquery.hammer.js",
+            "global.js",
+            "collapsible.js",
+            "dropdown.js",
+            "modal.js",
+            "materialbox.js",
+            "parallax.js",
+            "tabs.js",
+            "tooltip.js",
+            "waves.js",
+            "toasts.js",
+            "sideNav.js",
+            "scrollspy.js",
+            "forms.js",
+            "slider.js",
+            "cards.js",
+            "chips.js",
+            "pushpin.js",
+            "buttons.js",
+            "transitions.js",
+            "scrollFire.js",
+            "date_picker/picker.js",
+            "date_picker/picker.date.js",
+            "date_picker/picker.time.js",
+            "character_counter.js",
+            "carousel.js",
+            "tapTarget.js",
+          ], dest: 'materialize-src/js/'},
+          {expand: true, cwd: 'dist/js/', src: ['**/*'], dest: 'materialize-src/js/bin/'},
+          {expand: true, cwd: './', src: ['LICENSE', 'README.md'], dest: 'materialize-src/'}
 
         ]
       },
@@ -258,14 +356,14 @@ module.exports = function(grunt) {
     },
 
 
-//  Clean
-   clean: {
-     temp: {
-       src: [ 'temp/' ]
-     },
-   },
+    //  Clean
+    clean: {
+      temp: {
+        src: [ 'temp/' ]
+      },
+    },
 
-//  Jade
+    //  Jade
     jade: {
       compile: {
         options: {
@@ -313,14 +411,21 @@ module.exports = function(grunt) {
           "scrollspy.html": "jade/scrollspy.jade",
           "transitions.html": "jade/transitions.jade",
           "fullscreen-slider-demo.html": "jade/fullscreen-slider-demo.jade",
-          "pagination.html": "jade/pagination.jade"
-
+          "pagination.html": "jade/pagination.jade",
+          "breadcrumbs.html": "jade/breadcrumbs.jade",
+          "carousel.html": "jade/carousel.jade",
+          "feature-discovery.html": "jade/feature-discovery.jade",
+          "pulse.html": "jade/pulse.jade",
+          "pushpin-demo.html": "jade/pushpin-demo.jade",
+          "css-transitions.html": "jade/css-transitions.jade",
+          "themes.html": "jade/themes.jade",
+          "404.html": "jade/404.jade",
 
         }
       }
     },
 
-//  Watch Files
+    //  Watch Files
     watch: {
       jade: {
         files: ['jade/**/*'],
@@ -351,19 +456,21 @@ module.exports = function(grunt) {
     },
 
 
-//  Concurrent
+    //  Concurrent
     concurrent: {
       options: {
         logConcurrentOutput: true,
         limit: 10,
       },
       monitor: {
-        tasks: ["watch:jade", "watch:js", "watch:sass", "notify:watching", 'server']
+        tasks: ["jade_compile", "sass_compile", "js_compile",
+                "watch:jade", "watch:js", "watch:sass",
+                "notify:watching", 'server']
       },
     },
 
 
-//  Notifications
+    //  Notifications
     notify: {
       watching: {
         options: {
@@ -445,92 +552,48 @@ module.exports = function(grunt) {
 
     // Create Version Header for files
     usebanner: {
-        release: {
-          options: {
-            position: 'top',
-            banner: "/*!\n * Materialize v"+ grunt.option( "newver" ) +" (http://materializecss.com)\n * Copyright 2014-2015 Materialize\n * MIT License (https://raw.githubusercontent.com/Dogfalo/materialize/master/LICENSE)\n */",
-            linebreak: true
-          },
-          files: {
-            src: [ 'dist/css/*.css', 'dist/js/*.js']
-          }
-        }
-      },
-
-      // Rename files
-    rename: {
-          rename_src: {
-              src: 'bin/materialize-src'+'.zip',
-              dest: 'bin/materialize-src-v'+grunt.option( "newver" )+'.zip',
-              options: {
-                ignore: true
-              }
-          },
-          rename_compiled: {
-              src: 'bin/materialize'+'.zip',
-              dest: 'bin/materialize-v'+grunt.option( "newver" )+'.zip',
-              options: {
-                ignore: true
-              }
-          },
-      },
-
-      // Removes console logs
-      removelogging: {
-          source: {
-            src: ["js/**/*.js", "!js/velocity.min.js"],
-            options: {
-              // see below for options. this is optional.
-            }
-          }
-      },
-      // Testem
-      testem: {
-        'default': {
-          src: [
-            'bower_components/qunit/qunit/qunit.js',
-            'bower_components/jquery/dist/jquery.min.js',
-            'js/jquery.easing.1.3.js',
-            'js/animation.js',
-            'js/velocity.min.js',
-            'js/hammer.min.js',
-            'js/jquery.hammer.js',
-            'js/global.js',
-            'js/collapsible.js',
-            'js/dropdown.js',
-            'js/leanModal.js',
-            'js/materialbox.js',
-            'js/parallax.js',
-            'js/tabs.js',
-            'js/tooltip.js',
-            'js/waves.js',
-            'js/toasts.js',
-            'js/sideNav.js',
-            'js/scrollspy.js',
-            'js/forms.js',
-            'js/slider.js',
-            'js/cards.js',
-            'js/chips.js',
-            'js/pushpin.js',
-            'js/buttons.js',
-            'js/transitions.js',
-            'js/scrollFire.js',
-            'js/date_picker/picker.js',
-            'js/date_picker/picker.date.js',
-            'js/character_counter.js',
-            'tests/setup.js',
-            'tests/helpers/**/*.js',
-            'tests/**/*-test.js'
-          ],
-          options: {
-            framework: "qunit",
-            test_page: 'tests/index.mustache?hidepassed',
-            launch_in_dev: ['PhantomJS', 'Chrome', 'Firefox'],
-          }
+      release: {
+        options: {
+          position: 'top',
+          banner: "/*!\n * Materialize v"+ grunt.option( "newver" ) +" (http://materializecss.com)\n * Copyright 2014-2017 Materialize\n * MIT License (https://raw.githubusercontent.com/Dogfalo/materialize/master/LICENSE)\n */",
+          linebreak: true
+        },
+        files: {
+          src: [ 'dist/css/*.css', 'dist/js/*.js']
         }
       }
+    },
 
-  });
+    // Rename files
+    rename: {
+      rename_src: {
+        src: 'bin/materialize-src'+'.zip',
+        dest: 'bin/materialize-src-v'+grunt.option( "newver" )+'.zip',
+        options: {
+          ignore: true
+        }
+      },
+      rename_compiled: {
+        src: 'bin/materialize'+'.zip',
+        dest: 'bin/materialize-v'+grunt.option( "newver" )+'.zip',
+        options: {
+          ignore: true
+        }
+      },
+    },
+
+    // Removes console logs
+    removelogging: {
+      source: {
+        src: ["js/**/*.js", "!js/velocity.min.js"],
+        options: {
+          // see below for options. this is optional.
+        }
+      }
+    },
+  };
+
+  grunt.initConfig(config);
 
   // load the tasks
   // grunt.loadNpmTasks('grunt-gitinfo');
@@ -546,10 +609,14 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-notify');
   grunt.loadNpmTasks('grunt-text-replace');
   grunt.loadNpmTasks('grunt-banner');
-  grunt.loadNpmTasks('grunt-rename');
-  grunt.loadNpmTasks("grunt-remove-logging");
+  grunt.loadNpmTasks('grunt-rename-util');
+  grunt.loadNpmTasks('grunt-remove-logging');
   grunt.loadNpmTasks('grunt-browser-sync');
-  grunt.loadNpmTasks('grunt-contrib-testem');
+  grunt.loadNpmTasks('grunt-contrib-jasmine');
+  grunt.loadNpmTasks('grunt-postcss');
+  grunt.loadNpmTasks('grunt-babel');
+
+
   // define the tasks
   grunt.registerTask(
     'release',[
@@ -557,8 +624,12 @@ module.exports = function(grunt) {
       'copy',
       'sass:expanded',
       'sass:min',
+      'postcss:expanded',
+      'postcss:min',
       'concat:dist',
+      'babel:dist',
       'uglify:dist',
+      'uglify:extras',
       'usebanner:release',
       'compress:main',
       'compress:src',
@@ -567,15 +638,20 @@ module.exports = function(grunt) {
       'replace:version',
       'replace:readme',
       'rename:rename_src',
-      'rename:rename_compiled'
+      'rename:rename_compiled',
+      'clean:temp'
     ]
   );
 
+  grunt.task.registerTask("configureBabel", "configures babel options", function() {
+    config.babel.bin.options.inputSourceMap = grunt.file.readJSON(concatFile);
+  });
+
   grunt.registerTask('jade_compile', ['jade', 'notify:jade_compile']);
-  grunt.registerTask('js_compile', ['concat:temp', 'uglify:bin', 'notify:js_compile', 'clean:temp']);
-  grunt.registerTask('sass_compile', ['sass:gh', 'sass:bin', 'notify:sass_compile']);
+  grunt.registerTask('js_compile', ['concat:temp', 'configureBabel', 'babel:bin', 'notify:js_compile', 'clean:temp']);
+  grunt.registerTask('sass_compile', ['sass:gh', 'sass:bin', 'postcss:gh', 'postcss:bin', 'notify:sass_compile']);
   grunt.registerTask('server', ['browserSync', 'notify:server']);
   grunt.registerTask('lint', ['removelogging:source']);
-  grunt.registerTask("monitor", ["concurrent:monitor"]);
+  grunt.registerTask('monitor', ["concurrent:monitor"]);
+  grunt.registerTask('travis', ['js_compile', 'sass_compile', 'jasmine']);
 };
-

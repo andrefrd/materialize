@@ -1,43 +1,58 @@
 (function ($) {
   // Image transition function
-  Materialize.fadeInImage =  function(selector){
-    var element = $(selector);
+  Materialize.fadeInImage = function(selectorOrEl) {
+    var element;
+    if (typeof(selectorOrEl) === 'string') {
+      element = $(selectorOrEl);
+    } else if (typeof(selectorOrEl) === 'object') {
+      element = selectorOrEl;
+    } else {
+      return;
+    }
     element.css({opacity: 0});
     $(element).velocity({opacity: 1}, {
-        duration: 650,
-        queue: false,
-        easing: 'easeOutSine'
-      });
+      duration: 650,
+      queue: false,
+      easing: 'easeOutSine'
+    });
     $(element).velocity({opacity: 1}, {
-          duration: 1300,
-          queue: false,
-          easing: 'swing',
-          step: function(now, fx) {
-              fx.start = 100;
-              var grayscale_setting = now/100;
-              var brightness_setting = 150 - (100 - now)/1.75;
+      duration: 1300,
+      queue: false,
+      easing: 'swing',
+      step: function(now, fx) {
+        fx.start = 100;
+        var grayscale_setting = now/100;
+        var brightness_setting = 150 - (100 - now)/1.75;
 
-              if (brightness_setting < 100) {
-                brightness_setting = 100;
-              }
-              if (now >= 0) {
-                $(this).css({
-                    "-webkit-filter": "grayscale("+grayscale_setting+")" + "brightness("+brightness_setting+"%)",
-                    "filter": "grayscale("+grayscale_setting+")" + "brightness("+brightness_setting+"%)"
-                });
-              }
-          }
-      });
+        if (brightness_setting < 100) {
+          brightness_setting = 100;
+        }
+        if (now >= 0) {
+          $(this).css({
+              "-webkit-filter": "grayscale("+grayscale_setting+")" + "brightness("+brightness_setting+"%)",
+              "filter": "grayscale("+grayscale_setting+")" + "brightness("+brightness_setting+"%)"
+          });
+        }
+      }
+    });
   };
 
   // Horizontal staggered list
-  Materialize.showStaggeredList = function(selector) {
+  Materialize.showStaggeredList = function(selectorOrEl) {
+    var element;
+    if (typeof(selectorOrEl) === 'string') {
+      element = $(selectorOrEl);
+    } else if (typeof(selectorOrEl) === 'object') {
+      element = selectorOrEl;
+    } else {
+      return;
+    }
     var time = 0;
-    $(selector).find('li').velocity(
+    element.find('li').velocity(
         { translateX: "-100px"},
         { duration: 0 });
 
-    $(selector).find('li').each(function() {
+    element.find('li').each(function() {
       $(this).velocity(
         { opacity: "1", translateX: "0"},
         { duration: 800, delay: time, easing: [60, 10] });
@@ -71,7 +86,7 @@
     $('.dismissable').each(function() {
       $(this).hammer({
         prevent_default: false
-      }).bind('pan', function(e) {
+      }).on('pan', function(e) {
         if (e.gesture.pointerType === "touch") {
           var $this = $(this);
           var direction = e.gesture.direction;
@@ -91,7 +106,7 @@
             swipeRight = true;
           }
         }
-      }).bind('panend', function(e) {
+      }).on('panend', function(e) {
         // Reset if collection is moved back into original position
         if (Math.abs(e.gesture.deltaX) < ($(this).innerWidth() / 2)) {
           swipeRight = false;
